@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JSON Formatter</title>
+  <script>
+    function parseCssColorToDiscordInt(colorString) {
+      const temp = document.createElement('div');
+      temp.style.color = colorString;     
+      document.body.appendChild(temp);
+      const computed = getComputedStyle(temp).color;
+      document.body.removeChild(temp);
+      const match = computed.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
+      if (!match) {
+        return 0;
+      }
+
+      const r = parseInt(match[1], 10);
+      const g = parseInt(match[2], 10);
+      const b = parseInt(match[3], 10);
+      return (r << 16) + (g << 8) + b;
+    }
+
+    function formatJson() {
+      const input = document.getElementById('jsonInput').value;
+      let parsedData;
+      try {
+        parsedData = JSON.parse(input);
+      } catch (e) {
+        alert('Invalid JSON format!');
+        return;
+      }
+      function removeEmptyKeys(obj) {
+        for (let key in obj) {
+          if (
+            obj[key] === '' ||
+            (Array.isArray(obj[key]) && obj[key].length === 0)
+          ) {
+            delete obj[key];
+          } else if (typeof obj[key] === 'object') {
+            removeEmptyKeys(obj[key]);
+          }
+        }
+      }
+
+      const output = {
+        content: parsedData.content || '',
+        embeds: []
+      };
+
+      if (parsedData.embeds && Array.isArray(parsedData.embeds)) {
+        parsedData.embeds.forEach(embed => {
+          const embedObject = {
+            title: embed.rawTitle || '',
+            description: embed.rawDescription || '',
+            color: 0
+          };
+          if (typeof embed.color === 'string') {
+            embedObject.color = parseCssColorToDiscordInt(embed.color);
+          }
+
+          if (embed.fields && Array.isArray(embed.fields) && embed.fields.length > 0) {
+            embedObject.fields = embed.fields.map(field => ({
+              title: field.name || '',
+              value: field.value || ''
+            }));
+          }
+          output.embeds.push(embedObject);
+        });
+      }
+      removeEmptyKeys(output);
+      document.getElementById('formattedJson').textContent = JSON.stringify(output, null, 2);
+    }
+  </script>
+</head>
+<body>
+  <h1>JSON Formatter</h1>
+  <textarea id="jsonInput" rows="10" cols="80" placeholder="Paste your JSON here..."></textarea><br><br>
+  <button onclick="formatJson()">Format JSON</button>
+
+  <h2>Formatted JSON</h2>
+  <pre id="formattedJson"></pre>
+</body>
+</html>
