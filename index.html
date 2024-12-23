@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>(v2) JSON Formatter</title>
+  <title>(v3) JSON Formatter</title>
   <script>
     function parseCssColorToDiscordInt(colorString) {
       const temp = document.createElement('div');
@@ -11,6 +11,7 @@
       document.body.appendChild(temp);
       const computed = getComputedStyle(temp).color;
       document.body.removeChild(temp);
+
       const match = computed.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)$/);
       if (!match) {
         return 0;
@@ -32,6 +33,7 @@
         alert('Invalid JSON format!');
         return;
       }
+
       function removeEmptyKeys(obj) {
         for (let key in obj) {
           if (
@@ -44,6 +46,7 @@
           }
         }
       }
+
       const output = {
         content: parsedData.content || '',
         embeds: []
@@ -56,6 +59,7 @@
             description: embed.rawDescription || '',
             color: 0
           };
+
           if (typeof embed.color === 'string') {
             embedObject.color = parseCssColorToDiscordInt(embed.color);
           }
@@ -72,10 +76,11 @@
           }
           if (embed.fields && Array.isArray(embed.fields) && embed.fields.length > 0) {
             embedObject.fields = embed.fields.map(field => ({
-              title: field.name || '',
-              value: field.value || ''
+              name: field.rawName || '',
+              value: field.rawValue || ''
             }));
           }
+
           output.embeds.push(embedObject);
         });
       }
