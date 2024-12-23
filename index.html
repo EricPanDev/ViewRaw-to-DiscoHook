@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>JSON Formatter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>(v2) JSON Formatter</title>
   <script>
     function parseCssColorToDiscordInt(colorString) {
       const temp = document.createElement('div');
-      temp.style.color = colorString;     
+      temp.style.color = colorString;
       document.body.appendChild(temp);
       const computed = getComputedStyle(temp).color;
       document.body.removeChild(temp);
@@ -25,6 +25,7 @@
     function formatJson() {
       const input = document.getElementById('jsonInput').value;
       let parsedData;
+
       try {
         parsedData = JSON.parse(input);
       } catch (e) {
@@ -43,7 +44,6 @@
           }
         }
       }
-
       const output = {
         content: parsedData.content || '',
         embeds: []
@@ -59,7 +59,17 @@
           if (typeof embed.color === 'string') {
             embedObject.color = parseCssColorToDiscordInt(embed.color);
           }
-
+          if (embed.author) {
+            embedObject.author = {
+              name: embed.author.name || '',
+              icon_url: embed.author.iconURL || embed.author.icon_url || ''
+            };
+          }
+          if (embed.footer) {
+            embedObject.footer = {
+              text: embed.footer.text || ''
+            };
+          }
           if (embed.fields && Array.isArray(embed.fields) && embed.fields.length > 0) {
             embedObject.fields = embed.fields.map(field => ({
               title: field.name || '',
@@ -69,6 +79,7 @@
           output.embeds.push(embedObject);
         });
       }
+
       removeEmptyKeys(output);
       document.getElementById('formattedJson').textContent = JSON.stringify(output, null, 2);
     }
